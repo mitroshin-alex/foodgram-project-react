@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer, UserSerializer
 
+from recipes.models import Tag, Subscription
+
 
 class UserRegistrationSerializer(UserCreateSerializer):
     id = serializers.ReadOnlyField()
@@ -18,5 +20,14 @@ class CustomUserSerializer(UserSerializer):
                   'first_name', 'last_name', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        a = obj
-        return True
+        return Subscription.objects.filter(
+            user=self.context['request'].user,
+            author=obj
+        ).exists()
+
+
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'name', 'color', 'slug')
