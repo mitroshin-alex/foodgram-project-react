@@ -1,6 +1,13 @@
 version: '3.3'
 services:
-
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - ./pgdata/:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./.env
   frontend:
     build:
       context: ../frontend
