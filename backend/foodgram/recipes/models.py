@@ -6,6 +6,27 @@ from django.db.models import Q, F
 User = get_user_model()
 
 
+class Ingredient(models.Model):
+    """Модель ингредиентов."""
+    name = models.CharField(
+        max_length=200,
+        unique=True,
+        verbose_name='Имя ингредиента'
+    )
+    measurement_unit = models.CharField(
+        max_length=200,
+        blank=False,
+        verbose_name='Единица измерения ингредиента'
+    )
+
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return self.name
+
+
 class Tag(models.Model):
     """Модель тегов."""
     name = models.CharField(
