@@ -2,6 +2,7 @@ from colorfield.fields import ColorField
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.db.models import Q, F
+from django.core.validators import MinValueValidator
 
 User = get_user_model()
 
@@ -20,11 +21,12 @@ class Ingredient(models.Model):
     )
 
     class Meta:
+        ordering = ['name']
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
-        return self.name
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class Tag(models.Model):
@@ -80,3 +82,67 @@ class Subscription(models.Model):
 
     def __str__(self):
         return self.user.username + ' подписан на ' + self.author.username
+
+
+class Recipe(models.Model):
+    """Модель рецепта."""
+    name = models.CharField(max_length=200, verbose_name='Название рецепта')
+    text = models.TextField(null=False, verbose_name='Описание рецепта')
+    cooking_time = models.PositiveIntegerField(
+        null=False,
+        verbose_name='Время приготовления',
+        validators=(MinValueValidator(1),),
+    )
+    image = models.ImageField(
+        verbose_name='Картинка рецепта',
+        upload_to='recipes/',
+        blank=False
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Автор'
+    )
+    tags = models.ManyToManyField(Tag, blank=False, related_name='tags')
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        blank=False,
+        related_name='ingredients',
+        through='IngredientAmount'
+    )
+
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return self.name
+
+
+class IngredientAmount(models.Model):
+    """Модель связи для рецепта и ингредиентов
+    с учетом количества в рецепте."""
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиент'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт'
+    )
+    amount = models.PositiveIntegerField(
+        null=False,
+        verbose_name='Количество в рецепте',
+        validators=(MinValueValidator(1),),
+    )
+
+    class Meta:
+        unique_together = ('ingredient', 'recipe')
+        verbose_name = 'Ингредиент рецепта'
+        verbose_name_plural = 'Ингредиенты рецепта'
+
+    def __str__(self):
+        return f'{self.recipe.name}-{self.ingredient.name}'
