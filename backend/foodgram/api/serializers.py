@@ -3,7 +3,8 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from .fields import Base64ImageField
 from recipes.models import (
-    Tag, Subscription, Ingredient, Recipe, IngredientAmount, Favorite, User
+    Tag, Subscription, Ingredient, Recipe, IngredientAmount, Favorite, User,
+    ShoppingCart
 )
 
 
@@ -25,7 +26,7 @@ class CustomUserSerializer(UserSerializer):
                   'first_name', 'last_name', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        return is_subscribed(self, obj)
+        return is_obj_follow_author(self, obj, Subscription)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -80,6 +81,20 @@ class FavoriteSerializer(serializers.ModelSerializer):
             instance.recipe, context=context).data
 
 
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор для списка покупок."""
+
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return RecipeShortSerializer(
+            instance.recipe, context=context).data
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов."""
     tags = TagSerializer(many=True, read_only=True)
@@ -87,26 +102,19 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField(read_only=True)
-
-    # is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
-                  'name', 'image', 'text', 'cooking_time')
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'cooking_time')
 
     def get_is_favorited(self, obj):
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return Favorite.objects.filter(user=request.user, recipe=obj).exists()
+        return is_obj_follow_recipe(self, obj, Favorite)
 
-    # def get_is_in_shopping_cart(self, obj):
-    #     request = self.context.get('request')
-    #     if not request or request.user.is_anonymous:
-    #         return False
-    #     return ShoppingCart.objects.filter(
-    #         user=request.user, recipe=obj).exists()
+    def get_is_in_shopping_cart(self, obj):
+        return is_obj_follow_recipe(self, obj, ShoppingCart)
 
     def validate(self, data):
         ingredients = self.initial_data.get('ingredients', None)
@@ -213,7 +221,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                   'is_subscribed', 'recipes', 'recipes_count')
 
     def get_is_subscribed(self, obj):
-        return is_subscribed(self, obj)
+        return is_obj_follow_author(self, obj, Subscription)
 
     def get_recipes(self, obj):
         request = self.context.get('request')
@@ -231,11 +239,17 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return obj.recipes.count()
 
 
-def is_subscribed(self, obj):
-    request = self.context.get('request')
+def is_obj_follow_author(instance, obj, obj_class):
+    request = instance.context.get('request')
     if not request or request.user.is_anonymous:
         return False
-    return Subscription.objects.filter(
-        user=self.context.get('request').user,
-        author=obj
-    ).exists()
+    return obj_class.objects.filter(user=instance.context.get('request').user,
+                                    author=obj).exists()
+
+
+def is_obj_follow_recipe(instance, obj, obj_class):
+    request = instance.context.get('request')
+    if not request or request.user.is_anonymous:
+        return False
+    return obj_class.objects.filter(user=instance.context.get('request').user,
+                                    recipe=obj).exists()

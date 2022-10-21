@@ -1,3 +1,5 @@
+import csv
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -5,17 +7,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 
 from .mixins import ListRetrieveViewSet, ListViewSet
 from .serializers import (
     TagSerializer, IngredientSerializer, RecipeSerializer, FavoriteSerializer,
-    SubscriptionSerializer
+    SubscriptionSerializer, ShoppingCartSerializer
 )
 from .permissions import ReadOnly, IsAutherOrAdminOrReadOnly
 from .filters import IngredientFilter, RecipeFilter
 from .paginations import RecipePagination, SubscriptionPagination
 from recipes.models import (
-    Tag, Ingredient, Recipe, Favorite, User, Subscription
+    Tag, Ingredient, Recipe, Favorite, User, Subscription, ShoppingCart,
+    IngredientAmount
 )
 
 
@@ -46,28 +50,66 @@ class RecipeViewSet(ModelViewSet):
     @action(detail=True, methods=['post'],
             permission_classes=(IsAuthenticated,), name='favorite')
     def favorite(self, request, pk):
-        data = {'user': request.user.id, 'recipe': pk}
-        serializer = FavoriteSerializer(
-            data=data,
-            context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return self.create_obj(FavoriteSerializer, pk, request)
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
-        favorite = Favorite.objects.filter(
-            user_id=request.user.id, recipe_id=pk
-        )
-        if favorite.exists():
-            favorite.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        return self.delete_obj(Favorite, pk, request, 'избранном')
 
-        return Response(
-            {'errors': 'рецепт не в избранном'},
-            status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=True, methods=['post'],
+            permission_classes=(IsAuthenticated,), name='shopping_cart')
+    def shopping_cart(self, request, pk):
+        return self.create_obj(ShoppingCartSerializer, pk, request)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        return self.delete_obj(ShoppingCart, pk, request, 'списке покупок')
+
+    @action(detail=False, methods=['get'],
+            permission_classes=(IsAuthenticated,),
+            name='download_shopping_cart')
+    def download_shopping_cart(self, request, pk=None):
+        shopping_cart = {}
+        content = 'Выш список покупок \n\n'
+        ingredients = IngredientAmount.objects.filter(
+            recipe__carts__user=request.user).values_list(
+            'ingredient__name', 'amount', 'ingredient__measurement_unit'
+        )
+        for ingredient in ingredients:
+            name = ingredient[0]
+            amount = ingredient[1]
+            unit = ingredient[2]
+            if name in shopping_cart:
+                shopping_cart[name]['amount'] += amount
+            else:
+                shopping_cart[name] = {'unit': unit, 'amount': amount}
+
+        for i, (ingredient, data) in enumerate(shopping_cart.items(), 1):
+            content += (f'{i}) {ingredient} ({data["unit"]}) '
+                        f'— {data["amount"]}\n')
+        response = HttpResponse(content, content_type='text/plain')
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename="shopping_cart.txt"'
+
+        return response
+
+    @staticmethod
+    def create_obj(serializer_class, pk, request):
+        data = {'user': request.user.id, 'recipe': pk}
+        serializer = serializer_class(data=data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def delete_obj(obj_class, pk, request, message):
+        obj = obj_class.objects.filter(user_id=request.user.id, recipe_id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'errors': f'рецепт не в {message}'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class SubscriptionListViewSet(ListViewSet):
