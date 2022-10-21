@@ -3,7 +3,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from .fields import Base64ImageField
 from recipes.models import (
-    Tag, Subscription, Ingredient, Recipe, IngredientAmount, Favorite
+    Tag, Subscription, Ingredient, Recipe, IngredientAmount, Favorite, User
 )
 
 
@@ -25,13 +25,7 @@ class CustomUserSerializer(UserSerializer):
                   'first_name', 'last_name', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return Subscription.objects.filter(
-            user=self.context.get('request').user,
-            author=obj
-        ).exists()
+        return is_subscribed(self, obj)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -205,3 +199,43 @@ class RecipeSerializer(serializers.ModelSerializer):
                 ingredient_id=ingredient.get('id'),
                 amount=ingredient.get('amount'),
             )
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """Сериализатор для подписок на пользователей."""
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 'recipes_count')
+
+    def get_is_subscribed(self, obj):
+        return is_subscribed(self, obj)
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        recipes_limit = request.query_params.get('recipes_limit', None)
+        recipes = obj.recipes.all()
+        context = {'request': request}
+        if recipes_limit is not None:
+            recipes = recipes[:int(recipes_limit)]
+        return RecipeShortSerializer(
+            instance=recipes, many=True, context=context
+        ).data
+
+    @staticmethod
+    def get_recipes_count(obj):
+        return obj.recipes.count()
+
+
+def is_subscribed(self, obj):
+    request = self.context.get('request')
+    if not request or request.user.is_anonymous:
+        return False
+    return Subscription.objects.filter(
+        user=self.context.get('request').user,
+        author=obj
+    ).exists()
