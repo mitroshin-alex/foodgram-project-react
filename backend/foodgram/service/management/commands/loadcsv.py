@@ -83,4 +83,3 @@ class Command(BaseCommand):
         self._process_file(User, 'users.csv')
         self._process_file(Ingredient, 'ingredients.csv')
         self._process_file(Tag, 'tags.csv')
-        self._process_file(Recipe, 'recipes.csv', ('author',))

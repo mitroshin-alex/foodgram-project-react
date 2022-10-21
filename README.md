@@ -1,10 +1,11 @@
 # Foodgram
-![workflow status](https://github.com/mitroshin-alex/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
+![workflow status](https://github.com/mitroshin-alex/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg) \
+сервер доступен по [ссылке](http://51.250.104.153/) admin/admin
 ### Описание
 Блог, где вы можете найти рецепт для ужина на 100 персон 
-или завтрака за 5 минут. 
+или завтрака за 5 минут. \
 У нас вы сможете поделиться своим фирменным рецептом или загрузить 
-список продуктов для приготовления своих кулинарных экспериментов. 
+список продуктов для приготовления своих кулинарных экспериментов. \
 Следите за понравившимися авторами и добавляйте рецепты в избранное.
 ### Технологии
 - Python 3.7
@@ -30,7 +31,8 @@ DOCKER_PASSWORD = 1234qwer
 TELEGRAM_TO = 12345
 TELEGRAM_TOKEN = 1111111111:dfvbjev7VVGVJHB8384-95JH
 ```
-Плюс настройки для .env представленные ниже
+Плюс настройки для .env представленные ниже, \
+не забудьте внести адрес сервера в список разрешенных
  - На сервере: \
 Остановите службу nginx и отключить ее \
 ```sudo systemctl stop nginx``` \
@@ -41,7 +43,10 @@ TELEGRAM_TOKEN = 1111111111:dfvbjev7VVGVJHB8384-95JH
 [официальная документация](https://docs.docker.com/compose/install/) \
 Скопировать \
 ```docker-compose.yaml``` в домашнюю директорию на сервер \
-```nginx.conf``` в каталог nginx домашней директории на сервере \
+```nginx.conf``` в домашнюю директорию на сервер \
+```frontend``` папку frontend в домашнюю директорию на сервер \
+```docs``` папку docs в домашнюю директорию на сервер \
+```data``` папку data в домашнюю директорию на сервер
  - Push commit проекта на GitHab
 ### Ручное развертывание проекта на сервере
 ### Пример заполнения .env
@@ -57,7 +62,7 @@ DB_HOST=db
 DB_PORT=5432
 ``` 
 - SECRET_KEY - секретный ключ проекта
-- ALLOWED_HOSTS - список разрешенных хостов разделенных ;
+- ALLOWED_HOSTS - список разрешенных хостов разделенных
 - DB_ENGINE - движок базы данных
 - DB_NAME - имя базы данных
 - POSTGRES_USER - пользователь базы данных
@@ -85,76 +90,15 @@ docker compose web python manage.py createsuperuser
 ```
 docker compose exec web python manage.py collectstatic --no-input 
 ```
-### Загрузка тестовых данных в BD
+### Загрузка тестовых данных в BD (пользователи, теги, ингредиенты)
 - В файле конфигурации проекта задать путь к папке с данными
 ```
 По умолчанию
-DATA_DIR = os.path.join(BASE_DIR, 'static/data/')
+DATA_DIR = os.path.join(BASE_DIR, 'service/data/')
 ```
 - В папке с файлом manage.py выполните команду:
 ```
 sudo docker compose exec web python manage.py loadcsv
-```
-### Примеры запросов
-- POST /api/v1/auth/token/
-```json
-{
-  "username": "string",
-  "confirmation_code": "string"
-}
-```
-> <font color="blue">200</font>
-```json
-{
-  "token": "string"
-}
-```
-- GET api/v1/titles/
-> <font color="green">200</font>
-```json
-[
-  {
-    "count": 0,
-    "next": "string",
-    "previous": "string",
-    "results": [
-      {
-        "id": 0,
-        "name": "string",
-        "year": 0,
-        "rating": 0,
-        "description": "string",
-        "genre": [
-          {
-            "name": "string",
-            "slug": "string"
-          }
-        ],
-        "category": {
-          "name": "string",
-          "slug": "string"
-        }
-      }
-    ]
-  }
-]
-```
-- POST api/v1/titles/{title_id}/reviews/
-```json
-{
-  "text": "string",
-  "score": 1
-}
-```
-> <font color="blue">201</font>
-```json
-{
-  "id": 0,
-  "text": "string",
-  "author": "string",
-  "score": 1,
-  "pub_date": "2019-08-24T14:15:22Z"
-}
 ```
 ### Автор
 Митрошин Алексей
