@@ -10,9 +10,9 @@ SECRET_KEY = os.getenv(
     'SECRET_KEY',
     default=get_random_secret_key)
 
-DEBUG = True
+DEBUG = bool(os.getenv('DEBUG', default=1))
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost;web;172.23.224.1;127.0.0.1').split(';')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost;web').split(';')
 
 
 INSTALLED_APPS = [
@@ -104,11 +104,11 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static_backend/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_backend')
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media_backend/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media_backend')
 
 AUTH_USER_MODEL = 'users.User'
 

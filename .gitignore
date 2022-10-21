@@ -131,4 +131,4 @@ dmypy.json
 # .idea
 .idea
 /infra/pgdata/
-/backend/foodgram/media/recipes/
+/backend/foodgram/media_backend/recipes/
