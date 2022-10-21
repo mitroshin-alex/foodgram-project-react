@@ -3,7 +3,7 @@
 ### Описание
 Блог, где вы можете найти рецепт для ужина на 100 персон 
 или завтрака за 5 минут. 
-У нас Вы сможете поделиться своим фирменным рецептом или загрузить 
+У нас вы сможете поделиться своим фирменным рецептом или загрузить 
 список продуктов для приготовления своих кулинарных экспериментов. 
 Следите за понравившимися авторами и добавляйте рецепты в избранное.
 ### Технологии
@@ -41,7 +41,7 @@ TELEGRAM_TOKEN = 1111111111:dfvbjev7VVGVJHB8384-95JH
 [официальная документация](https://docs.docker.com/compose/install/) \
 Скопировать \
 ```docker-compose.yaml``` в домашнюю директорию на сервер \
-```default.conf``` в каталог nginx домашней директории на сервере \
+```nginx.conf``` в каталог nginx домашней директории на сервере \
  - Push commit проекта на GitHab
 ### Ручное развертывание проекта на сервере
 ### Пример заполнения .env
@@ -71,19 +71,19 @@ cd infra
 ``` 
 - Запустить docker-compose:
 ```
-docker compose -p api_yamdb up -d
+docker compose up -d
 ``` 
 - Применить миграции к базе данных:
 ```
-docker compose -p api_yamdb exec web python manage.py migrate
+docker compose exec web python manage.py migrate
 ```
 - Создание суперпользователя:
 ```
-docker compose -p api_yamdb exec web python manage.py createsuperuser
+docker compose web python manage.py createsuperuser
 ```
 - Сбор статики:
 ```
-docker compose -p api_yamdb exec web python manage.py collectstatic --no-input 
+docker compose exec web python manage.py collectstatic --no-input 
 ```
 ### Загрузка тестовых данных в BD
 - В файле конфигурации проекта задать путь к папке с данными
@@ -93,7 +93,7 @@ DATA_DIR = os.path.join(BASE_DIR, 'static/data/')
 ```
 - В папке с файлом manage.py выполните команду:
 ```
-docker compose -p api_yamdb exec web python manage.py loadcsv
+sudo docker compose exec web python manage.py loadcsv
 ```
 ### Примеры запросов
 - POST /api/v1/auth/token/
