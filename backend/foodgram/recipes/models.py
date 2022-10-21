@@ -111,8 +111,13 @@ class Recipe(models.Model):
         related_name='ingredients',
         through='IngredientAmount'
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True
+    )
 
     class Meta:
+        ordering = ['-pub_date']
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -146,3 +151,31 @@ class IngredientAmount(models.Model):
 
     def __str__(self):
         return f'{self.recipe.name}-{self.ingredient.name}'
+
+
+class Favorite(models.Model):
+    """Модель избранных рецептов."""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Подписчик'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorite',
+        verbose_name='Избранное'
+    )
+
+    class Meta:
+        unique_together = ('user', 'recipe')
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique_favorite'),
+        ]
+
+    def __str__(self):
+        return self.user.username + ' следит за ' + self.recipe.name

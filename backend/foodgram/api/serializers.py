@@ -3,7 +3,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from .fields import Base64ImageField
 from recipes.models import (
-    Tag, Subscription, Ingredient, Recipe, IngredientAmount
+    Tag, Subscription, Ingredient, Recipe, IngredientAmount, Favorite
 )
 
 
@@ -25,6 +25,9 @@ class CustomUserSerializer(UserSerializer):
                   'first_name', 'last_name', 'is_subscribed')
 
     def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
         return Subscription.objects.filter(
             user=self.context.get('request').user,
             author=obj
@@ -60,26 +63,49 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
+class RecipeShortSerializer(serializers.ModelSerializer):
+    """Сериализатор для короткого представления рецептов."""
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для избранных рецептов."""
+
+    class Meta:
+        model = Favorite
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return RecipeShortSerializer(
+            instance.recipe, context=context).data
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов."""
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
+    is_favorited = serializers.SerializerMethodField(read_only=True)
 
-    # is_favorited = serializers.SerializerMethodField(read_only=True)
     # is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
                   'name', 'image', 'text', 'cooking_time')
 
-    # def get_is_favorited(self, obj):
-    #     request = self.context.get('request')
-    #     if not request or request.user.is_anonymous:
-    #         return False
-    #     return Favorite.objects.filter(user=request.user, recipe=obj).exists()
+    def get_is_favorited(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return Favorite.objects.filter(user=request.user, recipe=obj).exists()
 
     # def get_is_in_shopping_cart(self, obj):
     #     request = self.context.get('request')

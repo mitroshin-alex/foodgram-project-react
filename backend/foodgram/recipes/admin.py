@@ -1,6 +1,8 @@
 from django.contrib import admin
 
-from .models import Ingredient, Tag, Subscription, Recipe, IngredientAmount
+from .models import (
+    Ingredient, Tag, Subscription, Recipe, IngredientAmount, Favorite
+)
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -28,7 +30,8 @@ class RecipeInlineAdmin(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
     inlines = [RecipeInlineAdmin, ]
-    list_display = ('pk', 'name', 'text', 'cooking_time', 'image', 'author')
+    list_display = ('pk', 'name', 'text', 'cooking_time',
+                    'image', 'author', 'pub_date')
     filter_horizontal = ('tags', 'ingredients')
     search_fields = ('user',)
 
@@ -37,6 +40,11 @@ class IngredientAmountAdmin(admin.ModelAdmin):
     list_display = ('pk', 'ingredient', 'recipe', 'amount')
 
 
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'user', 'recipe')
+
+
+admin.site.register(Favorite, FavoriteAdmin)
 admin.site.register(IngredientAmount, IngredientAmountAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
