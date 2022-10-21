@@ -1,0 +1,6 @@
+id,username,email,first_name,last_name,password
+100,bingobongo,bingobongo@yamdb.fake,bingo,bongo,1qwerty!
+101,capt_obvious,capt_obvious@yamdb.fake,capt,obvious,1qwerty!
+102,faust,faust@yamdb.fake,faust,faust,1qwerty!
+103,reviewer,reviewer@yamdb.fake,reviewer,reviewer,1qwerty!
+104,angry,angry@yamdb.fake,angry,angry,1qwerty!

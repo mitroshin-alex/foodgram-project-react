@@ -2,11 +2,14 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class ReadOnly(BasePermission):
+    """Права только для чтения."""
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS
 
 
 class IsAutherOrAdminOrReadOnly(BasePermission):
+    """Права на запись для автора, админа
+    и только чтение в остальных случаях."""
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS or request.user.is_authenticated
 

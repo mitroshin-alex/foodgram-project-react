@@ -11,6 +11,8 @@ from rest_framework import serializers
 
 
 class Base64ImageField(serializers.ImageField):
+    """Поле для преобразование Base64 в файл с картинкой
+    и представления картинки в виде url."""
     def to_representation(self, file):
         return self.context.get('request').build_absolute_uri(file.url)
 

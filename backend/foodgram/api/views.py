@@ -1,25 +1,23 @@
-import csv
-
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework import status
-from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
-from .mixins import ListRetrieveViewSet, ListViewSet
-from .serializers import (
-    TagSerializer, IngredientSerializer, RecipeSerializer, FavoriteSerializer,
-    SubscriptionSerializer, ShoppingCartSerializer
-)
-from .permissions import ReadOnly, IsAutherOrAdminOrReadOnly
-from .filters import IngredientFilter, RecipeFilter
-from .paginations import RecipePagination, SubscriptionPagination
 from recipes.models import (
     Tag, Ingredient, Recipe, Favorite, User, Subscription, ShoppingCart,
     IngredientAmount
+)
+from .filters import IngredientFilter, RecipeFilter
+from .mixins import ListRetrieveViewSet, ListViewSet
+from .paginations import RecipePagination, SubscriptionPagination
+from .permissions import ReadOnly, IsAutherOrAdminOrReadOnly
+from .serializers import (
+    TagSerializer, IngredientSerializer, RecipeSerializer, FavoriteSerializer,
+    SubscriptionSerializer, ShoppingCartSerializer
 )
 
 
@@ -41,6 +39,8 @@ class IngredientViewSet(ListRetrieveViewSet):
 
 
 class RecipeViewSet(ModelViewSet):
+    """CRUD для рецептов, добавление рецепта в избранное и список покупок,
+    загрузка списка покупок."""
     queryset = Recipe.objects.all()
     permission_classes = (IsAutherOrAdminOrReadOnly,)
     serializer_class = RecipeSerializer

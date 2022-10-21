@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 
 from django.core.management.utils import get_random_secret_key
 
@@ -27,6 +26,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'colorfield',
+    'service.apps.ServiceConfig',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
@@ -109,6 +109,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static_backend')
 
 MEDIA_URL = '/media_backend/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media_backend')
+
+DATA_DIR = os.path.join(BASE_DIR, 'service/data/')
 
 AUTH_USER_MODEL = 'users.User'
 

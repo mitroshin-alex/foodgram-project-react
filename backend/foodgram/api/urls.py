@@ -6,7 +6,6 @@ from .views import (
     SubscribeView
 )
 
-
 router_v1 = DefaultRouter()
 
 router_v1.register('tags', TagViewSet, basename='tags')
@@ -26,4 +25,3 @@ urlpatterns = [
     path('', include(router_v1.urls)),
     path('', include('djoser.urls')),
 ]
-

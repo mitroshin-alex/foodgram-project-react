@@ -1,11 +1,11 @@
-from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from rest_framework import serializers
 
-from .fields import Base64ImageField
 from recipes.models import (
-    Tag, Subscription, Ingredient, Recipe, IngredientAmount, Favorite, User,
-    ShoppingCart
+    Favorite, Ingredient, IngredientAmount, Recipe,
+    Subscription, ShoppingCart, Tag, User,
 )
+from .fields import Base64ImageField
 
 
 class UserRegistrationSerializer(UserCreateSerializer):
@@ -240,6 +240,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 def is_obj_follow_author(instance, obj, obj_class):
+    """Проверка что есть подписка на автора."""
     request = instance.context.get('request')
     if not request or request.user.is_anonymous:
         return False
@@ -248,6 +249,7 @@ def is_obj_follow_author(instance, obj, obj_class):
 
 
 def is_obj_follow_recipe(instance, obj, obj_class):
+    """Проверка что рецепт в избранном."""
     request = instance.context.get('request')
     if not request or request.user.is_anonymous:
         return False
