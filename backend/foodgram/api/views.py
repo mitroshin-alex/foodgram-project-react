@@ -50,25 +50,30 @@ class RecipeViewSet(ModelViewSet):
     @action(detail=True, methods=['post'],
             permission_classes=(IsAuthenticated,), name='favorite')
     def favorite(self, request, pk):
+        """Добавление рецепта в избранное."""
         return self.create_obj(FavoriteSerializer, pk, request)
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
+        """Удаление рецепта из избранного."""
         return self.delete_obj(Favorite, pk, request, 'избранном')
 
     @action(detail=True, methods=['post'],
             permission_classes=(IsAuthenticated,), name='shopping_cart')
     def shopping_cart(self, request, pk):
+        """Добавление рецепта в список покупок."""
         return self.create_obj(ShoppingCartSerializer, pk, request)
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, pk):
+        """Удаление рецепта из списка покупок."""
         return self.delete_obj(ShoppingCart, pk, request, 'списке покупок')
 
     @action(detail=False, methods=['get'],
             permission_classes=(IsAuthenticated,),
             name='download_shopping_cart')
     def download_shopping_cart(self, request, pk=None):
+        """Скачивание файла со списком покупок."""
         shopping_cart = {}
         content = 'Выш список покупок \n\n'
         ingredients = IngredientAmount.objects.filter(
@@ -96,6 +101,7 @@ class RecipeViewSet(ModelViewSet):
 
     @staticmethod
     def create_obj(serializer_class, pk, request):
+        """Создание и сериализация объекта."""
         data = {'user': request.user.id, 'recipe': pk}
         serializer = serializer_class(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
@@ -104,6 +110,7 @@ class RecipeViewSet(ModelViewSet):
 
     @staticmethod
     def delete_obj(obj_class, pk, request, message):
+        """Удаление объекта."""
         obj = obj_class.objects.filter(user_id=request.user.id, recipe_id=pk)
         if obj.exists():
             obj.delete()
@@ -119,6 +126,7 @@ class SubscriptionListViewSet(ListViewSet):
     pagination_class = SubscriptionPagination
 
     def get_queryset(self):
+        """Получение всех подписок пользователя."""
         return User.objects.filter(subscriptions__user=self.request.user)
 
 
@@ -129,6 +137,7 @@ class SubscribeView(APIView):
     pagination_class = None
 
     def post(self, request, *args, **kwargs):
+        """Создание подписки на автора."""
         user_id = self.kwargs.get('user_id')
         author = get_object_or_404(User, pk=user_id)
         if Subscription.objects.filter(user=request.user, author=author
@@ -150,6 +159,7 @@ class SubscribeView(APIView):
         )
 
     def delete(self, request, *args, **kwargs):
+        """Удаление подписки на автора."""
         user_id = self.kwargs.get('user_id')
         author = get_object_or_404(User, pk=user_id)
         subscription = Subscription.objects.filter(

@@ -52,19 +52,16 @@ class User(AbstractUser, PermissionsMixin):
 
     first_name = models.CharField(
         max_length=150,
-        blank=False,
         verbose_name='Имя'
     )
 
     last_name = models.CharField(
         max_length=150,
-        blank=False,
         verbose_name='Фамилия'
     )
 
     password = models.CharField(
         max_length=150,
-        blank=False,
         verbose_name='Пароль'
     )
 

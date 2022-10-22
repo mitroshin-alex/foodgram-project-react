@@ -27,11 +27,15 @@ class RecipeFilter(django_filters.FilterSet):
         fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart')
 
     def filter_is_favorited(self, queryset, name, value):
+        """Переопределение фильтрации по избранным рецептам,
+        если 1 то фильтруется."""
         if value == 1:
             return queryset.filter(favorites__user=self.request.user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
+        """Переопределение фильтрации по рецептам в списке покупок,
+        если 1 то фильтруется."""
         if value == 1:
             return queryset.filter(carts__user=self.request.user)
         return queryset

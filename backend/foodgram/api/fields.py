@@ -14,9 +14,11 @@ class Base64ImageField(serializers.ImageField):
     """Поле для преобразование Base64 в файл с картинкой
     и представления картинки в виде url."""
     def to_representation(self, file):
+        """Представление картинки как URL."""
         return self.context.get('request').build_absolute_uri(file.url)
 
     def to_internal_value(self, data):
+        """Перевод Base64 в файловое представление."""
         if isinstance(data, str):
             file_mime_type = None
             if ';base64,' in data:
@@ -47,6 +49,7 @@ class Base64ImageField(serializers.ImageField):
 
     @staticmethod
     def get_file_extension(filename, decoded_file):
+        """Определение расширения картинки."""
         try:
             from PIL import Image
         except ImportError:
@@ -63,4 +66,5 @@ class Base64ImageField(serializers.ImageField):
 
     @staticmethod
     def get_file_name(decoded_file):
+        """Случайное имя файла."""
         return str(uuid.uuid4())

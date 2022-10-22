@@ -2,7 +2,7 @@ from colorfield.fields import ColorField
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.db.models import Q, F
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
 
@@ -11,24 +11,22 @@ class Ingredient(models.Model):
     """Модель ингредиентов."""
     name = models.CharField(
         max_length=200,
-        blank=False,
         verbose_name='Имя ингредиента'
     )
     measurement_unit = models.CharField(
         max_length=200,
-        blank=False,
         verbose_name='Единица измерения ингредиента'
     )
 
     class Meta:
-        ordering = ['name']
+        ordering = ('name',)
         unique_together = ('name', 'measurement_unit')
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        constraints = [
-            models.UniqueConstraint(fields=['name', 'measurement_unit'],
-                                    name='unique_ingredient')
-        ]
+        constraints = (
+            models.UniqueConstraint(fields=('name', 'measurement_unit'),
+                                    name='unique_ingredient'),
+        )
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}'
@@ -42,7 +40,7 @@ class Tag(models.Model):
         verbose_name='Имя тега'
     )
     color = ColorField(
-        null=True,
+        unique=True,
         verbose_name='Цвет тега'
     )
     slug = models.SlugField(
@@ -56,7 +54,7 @@ class Tag(models.Model):
         verbose_name_plural = 'Теги'
 
     def __str__(self):
-        return self.slug
+        return self.name
 
 
 class Subscription(models.Model):
@@ -78,12 +76,12 @@ class Subscription(models.Model):
         unique_together = ('user', 'author')
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        constraints = [
-            models.UniqueConstraint(fields=['user', 'author'],
+        constraints = (
+            models.UniqueConstraint(fields=('user', 'author'),
                                     name='unique_following'),
             models.CheckConstraint(check=~Q(user_id=F('author_id')),
                                    name='not_following_self',),
-        ]
+        )
 
     def __str__(self):
         return self.user.username + ' подписан на ' + self.author.username
@@ -92,16 +90,15 @@ class Subscription(models.Model):
 class Recipe(models.Model):
     """Модель рецепта."""
     name = models.CharField(max_length=200, verbose_name='Название рецепта')
-    text = models.TextField(null=False, verbose_name='Описание рецепта')
-    cooking_time = models.PositiveIntegerField(
-        null=False,
+    text = models.TextField(verbose_name='Описание рецепта')
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
-        validators=(MinValueValidator(1),),
+        validators=(MinValueValidator(1),
+                    MaxValueValidator(1440)),
     )
     image = models.ImageField(
         verbose_name='Картинка рецепта',
-        upload_to='recipes/',
-        blank=False
+        upload_to='recipes/'
     )
     author = models.ForeignKey(
         User,
@@ -109,10 +106,9 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Автор'
     )
-    tags = models.ManyToManyField(Tag, blank=False, related_name='tags')
+    tags = models.ManyToManyField(Tag, related_name='tags')
     ingredients = models.ManyToManyField(
         Ingredient,
-        blank=False,
         related_name='ingredients',
         through='IngredientAmount'
     )
@@ -122,7 +118,7 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -143,10 +139,10 @@ class IngredientAmount(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Рецепт'
     )
-    amount = models.PositiveIntegerField(
-        null=False,
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество в рецепте',
-        validators=(MinValueValidator(1),),
+        validators=(MinValueValidator(1),
+                    MaxValueValidator(10000)),
     )
 
     class Meta:
@@ -177,10 +173,10 @@ class Favorite(models.Model):
         unique_together = ('user', 'recipe')
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
-        constraints = [
-            models.UniqueConstraint(fields=['user', 'recipe'],
+        constraints = (
+            models.UniqueConstraint(fields=('user', 'recipe'),
                                     name='unique_favorite'),
-        ]
+        )
 
     def __str__(self):
         return self.user.username + ' следит за ' + self.recipe.name
@@ -205,7 +201,7 @@ class ShoppingCart(models.Model):
         unique_together = ('user', 'recipe')
         verbose_name = 'Список покупки'
         verbose_name_plural = 'Список покупок'
-        constraints = [
-            models.UniqueConstraint(fields=['user', 'recipe'],
+        constraints = (
+            models.UniqueConstraint(fields=('user', 'recipe'),
                                     name='unique_shopping_cart'),
-        ]
+        )

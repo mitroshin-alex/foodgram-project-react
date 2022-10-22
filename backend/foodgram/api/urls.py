@@ -17,7 +17,7 @@ router_v1.register(
 
 urlpatterns = [
     path(
-        r'users/<int:user_id>/subscribe/',
+        'users/<int:user_id>/subscribe/',
         SubscribeView.as_view(),
         name='subscribe'
     ),
