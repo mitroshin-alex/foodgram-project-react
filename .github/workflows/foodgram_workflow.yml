@@ -45,7 +45,7 @@ jobs:
         with:
           context: ./backend/foodgram/
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_web:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGE }}:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
           script: |
             sudo docker compose stop
             sudo docker compose rm web -f
-            sudo docker image prune -f
+            sudo docker image rm {{ secrets.DOCKER_IMAGE }} -f
             echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" > .env
             echo "DEBUG=${{ secrets.DEBUG }}" > .env
             echo "ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}" >> .env
