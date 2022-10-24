@@ -217,10 +217,11 @@ class RecipeSerializer(serializers.ModelSerializer):
             validated_data.get('ingredients')
         )
 
-        instance.image = validated_data.get('image')
         instance.name = validated_data.get('name')
         instance.text = validated_data.get('text')
         instance.cooking_time = validated_data.get('cooking_time')
+        if validated_data.get('image') is not None:
+            instance.image = validated_data.get('image')
         instance.save()
 
         return instance
