@@ -2,7 +2,9 @@ from colorfield.fields import ColorField
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.db.models import Q, F
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import (
+    MinValueValidator, MaxValueValidator, ValidationError
+)
 
 User = get_user_model()
 
@@ -76,12 +78,17 @@ class Subscription(models.Model):
         unique_together = ('user', 'author')
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        constraints = (
+        constraints = [
             models.UniqueConstraint(fields=('user', 'author'),
                                     name='unique_following'),
             models.CheckConstraint(check=~Q(user_id=F('author_id')),
                                    name='not_following_self',),
-        )
+        ]
+
+    def clean(self):
+        if self.user_id == self.author_id:
+            raise ValidationError('Нельзя подписаться на себя')
+        return super(Subscription, self).clean()
 
     def __str__(self):
         return self.user.username + ' подписан на ' + self.author.username

@@ -143,7 +143,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'amount': ['Обязательное поле.']
                 })
-            if not amount.isdigit():
+            if not isinstance(amount, int) and not amount.isdigit():
                 raise serializers.ValidationError({
                     'ingredients_amount': [
                         'amount должен быть числом'
@@ -155,7 +155,12 @@ class RecipeSerializer(serializers.ModelSerializer):
                         'Количество ингредиента должно быть больше нуля'
                     ]
                 })
-
+            if int(amount) > 10000:
+                raise serializers.ValidationError({
+                    'ingredients_amount': [
+                        'Количество ингредиента должно быть меньше 10000'
+                    ]
+                })
             ingredient_id = ingredient.get('id')
             if not Ingredient.objects.filter(id=ingredient_id).exists():
                 raise serializers.ValidationError({
